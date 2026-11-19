@@ -13,7 +13,7 @@ L'installer aggiunge LiveCaption al menu Start (e, se vuoi, al desktop) e si dis
 
 Preferisci non installare niente? Scarica **[LiveCaption.zip](https://github.com/ncrdavide-svg/LiveCaption/releases/latest/download/LiveCaption.zip)**, scompattalo dove vuoi e avvia `LiveCaption\LiveCaption.exe`.
 
-> **Suite LIVE** · Con **[LiveSuite](https://github.com/ncrdavide-svg/LiveSuite)** installi e tieni aggiornate LiveCue, LiveSlides, LiveCount e LiveCaption da un'unica piccola app: **[scarica LiveSuite.exe](https://github.com/ncrdavide-svg/LiveSuite/releases/latest/download/LiveSuite.exe)**.
+> **Suite LIVE** · Con **[LiveSuite](https://github.com/ncrdavide-svg/LiveSuite)** installi e tieni aggiornate LiveCue, LiveDeck, LiveCount e LiveCaption da un'unica piccola app: **[scarica LiveSuite.exe](https://github.com/ncrdavide-svg/LiveSuite/releases/latest/download/LiveSuite.exe)**.
 
 > Al primo avvio Windows potrebbe mostrare "Windows ha protetto il PC" (l'exe non è firmato): clicca **Ulteriori informazioni → Esegui comunque**.
 
