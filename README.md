@@ -25,7 +25,7 @@ Tutto funziona **offline**, sul portatile: nessun servizio online, nessun costo.
 - **Trascrizione in italiano** in tempo reale con [Vosk](https://alphacephei.com/vosk/): le parole compaiono mentre parli.
 - **Punteggiatura e maiuscole** aggiunte a fine frase da un modello dedicato.
 - **Un colore per relatore**: riconosce chi parla dalla voce, anche con tutti sullo stesso microfono (4 colori personalizzabili, sensibilità regolabile).
-- **Traduzione in inglese** sotto ogni frase, in corsivo.
+- **Traduzione in inglese**: a scelta italiano con la traduzione sotto in corsivo, solo italiano, oppure **solo la traduzione inglese** a schermo (per un pubblico che non parla italiano).
 - **Display** a schermo pieno sul monitor scelto, oppure in una finestra ridimensionabile.
 - Colore di sfondo, font e grandezza del testo a scelta; ogni funzione si può spegnere per alleggerire il PC.
 
