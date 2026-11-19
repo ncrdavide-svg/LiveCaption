@@ -4,6 +4,15 @@
 
 <p align="center">Sottotitoli dal vivo: ascolta il microfono dalla scheda audio, trascrive quello che dici e lo mostra a schermo pieno sul secondo monitor, con la traduzione in inglese sotto.</p>
 
+<p align="center">
+  <a href="https://github.com/ncrdavide-svg/LiveCaption/releases/latest/download/LiveCaption.zip"><b>⬇ Scarica LiveCaption per Windows 10/11 (zip)</b></a><br>
+  <img src="https://img.shields.io/github/v/release/ncrdavide-svg/LiveCaption?label=versione&color=2ea44f" alt="versione"> · <a href="https://github.com/ncrdavide-svg/LiveCaption/releases">tutte le versioni</a>
+</p>
+
+Nessuna installazione: scompatta lo zip dove vuoi e avvia `LiveCaption\LiveCaption.exe`.
+
+> Al primo avvio Windows potrebbe mostrare "Windows ha protetto il PC" (l'exe non è firmato): clicca **Ulteriori informazioni → Esegui comunque**.
+
 Tutto funziona **offline**, sul portatile: nessun servizio online, nessun costo. Serve internet solo al primo avvio, per scaricare i modelli (circa 4 GB).
 
 ## Funzioni
