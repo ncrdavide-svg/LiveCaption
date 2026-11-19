@@ -25,7 +25,7 @@ import sounddevice as sd
 from vosk import Model, KaldiRecognizer, SpkModel, SetLogLevel
 
 APP_NAME = "LiveCaption"
-APP_VERSION = "1.0.0"
+APP_VERSION = "1.1.0"
 FROZEN = getattr(sys, "frozen", False)
 APP_DIR = os.path.dirname(sys.executable if FROZEN else os.path.abspath(__file__))
 RES_DIR = getattr(sys, "_MEIPASS", APP_DIR)
@@ -59,6 +59,8 @@ TRANS_REPO = "Helsinki-NLP/opus-mt-it-en"
 WINDOW_LABEL = "Finestra (ridimensionabile)"
 CHANNELS = ["Ingresso 1", "Ingresso 2", "Mix 1+2"]
 MAX_BLOCKS = 25
+MODES = {"both": "Italiano + traduzione inglese", "orig": "Solo italiano", "trans": "Solo traduzione inglese"}
+MODE_KEYS = {v: k for k, v in MODES.items()}
 
 DEFAULTS = {
     "bg": "#000000",
@@ -69,7 +71,7 @@ DEFAULTS = {
     "channel": "Ingresso 1",
     "screen": "",
     "punct": True,
-    "translate": True,
+    "mode": "both",
     "speakers": True,
     "spk_sens": 50,
 }
@@ -322,6 +324,9 @@ class App:
             if "fg" in saved and "colors" not in saved:  # vecchie impostazioni
                 saved["colors"] = [saved["fg"]] + DEFAULTS["colors"][1:]
             saved.pop("fg", None)
+            if "translate" in saved and "mode" not in saved:  # impostazioni della 1.0
+                saved["mode"] = "both" if saved["translate"] else "orig"
+            saved.pop("translate", None)
             self.s.update(saved)
         except Exception:
             pass
@@ -336,6 +341,7 @@ class App:
         self.blocks = []                # {"id", "spk", "text", "trans"}
         self.next_id = 0
         self.partial = ""
+        self.models_done = False
 
         root.title(f"{APP_NAME} {APP_VERSION}")
         self._set_icon(root)
@@ -436,17 +442,22 @@ class App:
         ttk.Separator(f).grid(row=r, column=0, columnspan=4, sticky="we", pady=8)
         r += 1
 
+        ttk.Label(f, text="Testo a schermo").grid(row=r, column=0, sticky="w", pady=3)
+        self.mode_var = tk.StringVar(value=MODES.get(self.s["mode"], MODES["both"]))
+        cb = ttk.Combobox(f, textvariable=self.mode_var, values=list(MODES.values()),
+                          state="readonly", width=30)
+        cb.grid(row=r, column=1, columnspan=3, sticky="w")
+        cb.bind("<<ComboboxSelected>>", lambda e: self._render_and_save())
+        r += 1
+
         self.punct_var = tk.BooleanVar(value=self.s["punct"])
-        self.trans_var = tk.BooleanVar(value=self.s["translate"])
         self.spk_var = tk.BooleanVar(value=self.s["speakers"])
         of = ttk.Frame(f)
         of.grid(row=r, column=0, columnspan=4, sticky="w")
         ttk.Checkbutton(of, text="Punteggiatura", variable=self.punct_var,
                         command=self._save).pack(side="left")
-        ttk.Checkbutton(of, text="Traduzione inglese", variable=self.trans_var,
-                        command=self._render_and_save).pack(side="left", padx=12)
         ttk.Checkbutton(of, text="Colore per relatore", variable=self.spk_var,
-                        command=self._render_and_save).pack(side="left")
+                        command=self._render_and_save).pack(side="left", padx=12)
         r += 1
 
         ttk.Label(f, text="Sensibilità\ncambio relatore").grid(row=r, column=0, sticky="w", pady=3)
@@ -562,26 +573,44 @@ class App:
                 self.s["colors"][key] = c.upper()
             self._apply_style()
 
+    def _mode(self):
+        """'both', 'orig' o 'trans'. Senza modello di traduzione si ripiega sull'originale."""
+        mode = MODE_KEYS.get(self.mode_var.get(), "both") if hasattr(self, "mode_var") else "both"
+        if mode == "trans" and self.models_done and not self.proc.trans:
+            return "orig"
+        return mode
+
     def _render(self):
         if not hasattr(self, "txt"):
             return
         n = len(self.s["colors"])
-        show_trans = self.trans_var.get()
+        mode = self._mode()
         color_spk = self.spk_var.get()
         t = self.txt
         t.configure(state="normal")
         t.delete("1.0", "end")
         first = True
+        waiting = False  # in "solo inglese": frasi dette ma non ancora tradotte
         for b in self.blocks[-MAX_BLOCKS:]:
             c = (b["spk"] % n) if (color_spk and b["spk"] is not None) else 0
-            if not first:
-                t.insert("end", "\n")
-            first = False
-            t.insert("end", b["text"], f"o{c}")
-            if show_trans and b["trans"]:
-                t.insert("end", "\n" + b["trans"], f"t{c}")
-        if self.partial:
-            c = (self.speakers.last % n) if color_spk else 0
+            if mode == "trans":
+                if not b["trans"]:
+                    waiting = True
+                    continue
+                parts = [(b["trans"], f"o{c}")]  # la traduzione prende il posto dell'originale
+            else:
+                parts = [(b["text"], f"o{c}")]
+                if mode == "both" and b["trans"]:
+                    parts.append((b["trans"], f"t{c}"))
+            for text, tag in parts:
+                t.insert("end", ("" if first else "\n") + text, tag)
+                first = False
+        c = (self.speakers.last % n) if color_spk else 0
+        if mode == "trans":
+            # l'italiano non si mostra: "…" fa capire che sta arrivando la traduzione
+            if self.partial or waiting:
+                t.insert("end", ("" if first else "\n") + "…", f"o{c}")
+        elif self.partial:
             t.insert("end", ("" if first else "\n") + self.partial, f"o{c}")
         t.see("end")
         t.configure(state="disabled")
@@ -615,6 +644,8 @@ class App:
                 loader(st)
             except Exception as e:
                 msgs.append(f"{name} non disponibile ({e})")
+        self.models_done = True
+        self.q.put(("rerender", None))
         st("; ".join(msgs) if msgs else ("In ascolto..." if self.tr else "Pronto"))
 
     def _worker(self):
@@ -631,7 +662,7 @@ class App:
                 else:
                     text = text[0].upper() + text[1:] + "."
                 self.q.put(("update", bid, {"text": text}))
-                if self.trans_var.get():
+                if self._mode() != "orig":
                     tr = self.proc.translate(text)
                     if tr:
                         self.q.put(("update", bid, {"trans": tr}))
@@ -709,6 +740,8 @@ class App:
                             changed = True
                 elif kind == "status":
                     self.status.set(msg[1])
+                elif kind == "rerender":
+                    changed = True
                 elif kind == "ready":
                     self.run_btn.configure(state="normal")
                     self._start()
@@ -727,7 +760,7 @@ class App:
         self.s.update(font=self.font_var.get(), size=int(self.size_var.get()),
                       device=self.dev_var.get(), channel=self.ch_var.get(),
                       screen=self.scr_var.get(), punct=self.punct_var.get(),
-                      translate=self.trans_var.get(), speakers=self.spk_var.get(),
+                      mode=MODE_KEYS.get(self.mode_var.get(), "both"), speakers=self.spk_var.get(),
                       spk_sens=int(self.sens_var.get()))
         try:
             with open(SETTINGS_FILE, "w", encoding="utf-8") as f:
