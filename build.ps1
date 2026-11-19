@@ -1,8 +1,6 @@
 # Compila LiveCaption in dist\LiveCaption\LiveCaption.exe (cartella con exe + librerie).
-#   powershell -ExecutionPolicy Bypass -File build.ps1            solo compilazione
-#   powershell -ExecutionPolicy Bypass -File build.ps1 -Install   compila e installa per l'utente
-#                                                                 (menu Start + desktop)
-param([switch]$Install)
+#   powershell -ExecutionPolicy Bypass -File build.ps1
+# Per l'installer (LiveCaption-Setup.exe) usa installer\build-installer.ps1.
 $ErrorActionPreference = "Stop"
 Set-Location $PSScriptRoot
 
@@ -28,21 +26,3 @@ if (-not (Test-Path "assets\LiveCaption.ico")) { & $py tools\make_icon.py }
     LiveCaption.py
 if ($LASTEXITCODE -ne 0) { throw "PyInstaller non riuscito" }
 Write-Host "Creato dist\LiveCaption\LiveCaption.exe"
-
-if ($Install) {
-    $dest = Join-Path $env:LOCALAPPDATA "Programs\LiveCaption"
-    Get-Process LiveCaption -ErrorAction SilentlyContinue | Stop-Process -Force
-    if (Test-Path $dest) { Remove-Item $dest -Recurse -Force }
-    Copy-Item "dist\LiveCaption" $dest -Recurse
-    $exe = Join-Path $dest "LiveCaption.exe"
-    $shell = New-Object -ComObject WScript.Shell
-    foreach ($dir in @([Environment]::GetFolderPath("Programs"), [Environment]::GetFolderPath("Desktop"))) {
-        $lnk = $shell.CreateShortcut((Join-Path $dir "LiveCaption.lnk"))
-        $lnk.TargetPath = $exe
-        $lnk.WorkingDirectory = $dest
-        $lnk.IconLocation = "$exe,0"
-        $lnk.Description = "Sottotitoli dal vivo con traduzione"
-        $lnk.Save()
-    }
-    Write-Host "Installato in $dest (collegamenti nel menu Start e sul desktop)"
-}

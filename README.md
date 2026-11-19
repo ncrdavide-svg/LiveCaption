@@ -5,11 +5,15 @@
 <p align="center">Sottotitoli dal vivo: ascolta il microfono dalla scheda audio, trascrive quello che dici e lo mostra a schermo pieno sul secondo monitor, con la traduzione in inglese sotto.</p>
 
 <p align="center">
-  <a href="https://github.com/ncrdavide-svg/LiveCaption/releases/latest/download/LiveCaption.zip"><b>⬇ Scarica LiveCaption per Windows 10/11 (zip)</b></a><br>
-  <img src="https://img.shields.io/github/v/release/ncrdavide-svg/LiveCaption?label=versione&color=2ea44f" alt="versione"> · <a href="https://github.com/ncrdavide-svg/LiveCaption/releases">tutte le versioni</a>
+  <a href="https://github.com/ncrdavide-svg/LiveCaption/releases/latest/download/LiveCaption-Setup.exe"><b>⬇ Scarica LiveCaption-Setup.exe per Windows 10/11</b></a><br>
+  <img src="https://img.shields.io/github/v/release/ncrdavide-svg/LiveCaption?label=versione&color=2ea44f" alt="versione"> · <a href="https://github.com/ncrdavide-svg/LiveCaption/releases">tutte le versioni e le novità</a>
 </p>
 
-Nessuna installazione: scompatta lo zip dove vuoi e avvia `LiveCaption\LiveCaption.exe`.
+L'installer aggiunge LiveCaption al menu Start (e, se vuoi, al desktop) e si disinstalla da *Impostazioni → App → App installate*. Puoi installarlo per tutti gli utenti o solo per te (senza permessi di amministratore).
+
+Preferisci non installare niente? Scarica **[LiveCaption.zip](https://github.com/ncrdavide-svg/LiveCaption/releases/latest/download/LiveCaption.zip)**, scompattalo dove vuoi e avvia `LiveCaption\LiveCaption.exe`.
+
+> **Suite LIVE** · Con **[LiveSuite](https://github.com/ncrdavide-svg/LiveSuite)** installi e tieni aggiornate LiveCue, LiveSlides, LiveCount e LiveCaption da un'unica piccola app: **[scarica LiveSuite.exe](https://github.com/ncrdavide-svg/LiveSuite/releases/latest/download/LiveSuite.exe)**.
 
 > Al primo avvio Windows potrebbe mostrare "Windows ha protetto il PC" (l'exe non è firmato): clicca **Ulteriori informazioni → Esegui comunque**.
 
@@ -56,7 +60,15 @@ Serve Python 3 a 64 bit.
 powershell -ExecutionPolicy Bypass -File build.ps1
 ```
 
-Crea `dist\LiveCaption\LiveCaption.exe`. Con `-Install` lo copia anche in `%LOCALAPPDATA%\Programs\LiveCaption` e aggiunge i collegamenti nel menu Start e sul desktop.
+Crea `dist\LiveCaption\LiveCaption.exe`.
+
+L'installer si crea con [Inno Setup 6](https://jrsoftware.org/isinfo.php) (`winget install JRSoftware.InnoSetup`):
+
+```bat
+powershell -ExecutionPolicy Bypass -File installer\build-installer.ps1
+```
+
+Compila l'app e mette `LiveCaption-Setup-<versione>.exe` e `LiveCaption-Setup.exe` in `artifacts\installer`. La versione si cambia in un solo punto: `APP_VERSION` in `LiveCaption.py`.
 
 Per provarlo senza compilare: `python LiveCaption.py` (dopo `pip install -r requirements.txt`).
 
