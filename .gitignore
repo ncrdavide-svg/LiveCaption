@@ -1,0 +1,7 @@
+.venv/
+build/
+dist/
+models/
+__pycache__/
+*.spec
+LiveCaption.settings.json
